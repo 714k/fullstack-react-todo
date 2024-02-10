@@ -18,18 +18,19 @@ const endpointPostTodo = 'http://localhost:8080/api/todos/';
 
 function App() {
   const [todos, setTodos] = useState<TodoItemProps[]>([]);
-  let todoAddSuccess = false;
+  const [fetchSuccess, setFetchSuccess] = useState(false);
   
   const getTodosFromAPI = async () => {
     try {
       const response = await fetch(endpointGetTodos, {mode:'cors'});
       const data = await response.json();
       const initialData = localStorage.getItem('todos') || data;
-      setTodos(JSON.parse(initialData))
-      console.log({ data })
+      setTodos(initialData);
+      setFetchSuccess(true);
+      console.log({ data });
     }
     catch (error) {
-      console.log(error)
+      console.log(error);
     }
   }
 
@@ -50,18 +51,17 @@ function App() {
       setTodos((todo) => [
         data,
         ...todo,
-      ])
-      todoAddSuccess = true;
+      ]);
       // console.log({ data })
     }
     catch (error) {
-      console.log(error)
+      console.log(error);
     }
   };
 
   useEffect(() => {
     getTodosFromAPI();
-  }, [todos]);
+  }, []);
   
   const addTodo = useCallback((description: string) => {
     const todo = {
@@ -121,7 +121,7 @@ function App() {
       <Header>Todo List</Header>
       <AddInput onAdd={addTodo} />
       <TodoList>
-        {todoAddSuccess === true && todos?.map((todo, idx) => (
+        {fetchSuccess && todos?.map((todo, idx) => (
           <TodoItem
             {...todo}
             key={idx}
