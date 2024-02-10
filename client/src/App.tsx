@@ -1,10 +1,15 @@
 import React, { useCallback, useState, useEffect } from "react";
 import { v4 as uuidv4 } from 'uuid';
 import styled from "@emotion/styled";
-import { AddInput } from "./components/AddInput";
-import { TodoItem, TodoItemProps } from "./components/TodoItem";
-import { TodoList } from "./components/TodoList";
-import { Header } from "./components/Header";
+import { 
+  AddInput,
+  Header,
+  TodoItem,
+  TodoList
+} from "./components";
+import { getAllTodos, postTodo } from "./api/todos";
+import { error } from "console";
+import { TodoItemProps } from "./models/TodoItem";
 
 const Wrapper = styled.div({
   display: "flex",
@@ -13,27 +18,29 @@ const Wrapper = styled.div({
   width: '90%',
 });
 
-const endpointGetTodos = 'http://localhost:8080/api/todos/';
-const endpointPostTodo = 'http://localhost:8080/api/todos/';
-
 function App() {
   const [todos, setTodos] = useState([]);
   const [todosSuccess, setTodosSuccess] = useState(false);
   
+  useEffect(() => {
+    getTodos();
+  }, []);
+
   const getTodos = async () => {
     try {
       // fetch todos if not exist in localStorage
       // if localStorage has no todos
       if(localStorage.getItem('todos') === null) {
         // fetch todos
-        const response = await fetch(endpointGetTodos, {mode:'cors'});
-        const data = await response.json();
+        const response = await getAllTodos();
+        const data = response?.data;
         // setTodos
         setTodos(data);
         // add todos to localStorage
         localStorage.setItem('todos', JSON.stringify(data));
         setTodosSuccess(true);
       } else {
+        // Set todos from local Storage
         setTodos(JSON.parse(localStorage.getItem('todos')!));
         setTodosSuccess(true);
       }
@@ -43,35 +50,6 @@ function App() {
     }
   }
 
-  const addTodoToAPI = async(todo: TodoItemProps) => {
-    try {
-      const response = await fetch(endpointPostTodo, {
-        mode:'cors',
-        method: 'POST',
-        body: JSON.stringify(todo),
-        headers: {
-          'Accepts': "application/json",
-          'Content-type': 'application/json',
-        }
-      });
-      const data = await response.json();
-      // const initialData = localStorage.getItem('todos') || data;
-      // setTodos(JSON.parse(initialData))
-      setTodos((todo) => [
-        data,
-        ...todo,
-      ]);
-      // console.log({ data })
-    }
-    catch (error) {
-      console.log(error);
-    }
-  };
-
-  useEffect(() => {
-    getTodos();
-  }, []);
-
   const addTodo = useCallback((description: string) => {
     const todo = {
       id: uuidv4(),
@@ -79,9 +57,26 @@ function App() {
       completed: false,
     };
 
-    addTodoToAPI(todo);
-   
+    createTodo(todo);
+    
   }, [todos]);
+
+  const createTodo = async (todo: TodoItemProps) => {
+    try {
+      const response = await postTodo(todo);
+      const data = response?.data;
+      // setTodos
+      setTodos((todo) => [
+        data,
+        ...todo,
+      ]);
+      // add todos to localStorage
+      localStorage.setItem('todos', JSON.stringify([...todos, data]));
+      setTodosSuccess(true);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const handleChange = useCallback((checked: boolean, id: string) => {
     // handle the check/uncheck logic

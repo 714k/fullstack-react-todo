@@ -1,5 +1,6 @@
 import React, { FC, useState } from "react";
 import styled from "@emotion/styled";
+import { TodoItemProps } from "../models/TodoItem";
 
 export const Wrapper = styled.label({
   display: "flex",
@@ -46,14 +47,6 @@ const Button = styled.button`
     background-color: black;
    }
 `;
-
-export interface TodoItemProps {
-  id: string;
-  description: string;
-  checked?: boolean;
-  onChange?: (checked: boolean, id: string) => void;
-  onClick?: (event: MouseEvent, id: string) => void;
-}
 
 export const TodoItem: FC<TodoItemProps> = ({
   id,

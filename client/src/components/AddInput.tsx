@@ -1,5 +1,6 @@
 import React, { FC, useState } from "react";
 import styled from "@emotion/styled";
+import { AddInputProps } from "../models/AddInput";
 
 const Form = styled.form({
   width: "90%",
@@ -14,10 +15,6 @@ const Input = styled.input({
   borderRadius: 3,
   marginBottom: 8,
 });
-
-export interface AddInputProps {
-  onAdd: (label: string) => void;
-}
 
 export const AddInput: FC<AddInputProps> = ({ onAdd }) => {
   const [input, setInput] = useState("");
