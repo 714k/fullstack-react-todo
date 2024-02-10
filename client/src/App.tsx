@@ -17,17 +17,26 @@ const endpointGetTodos = 'http://localhost:8080/api/todos/';
 const endpointPostTodo = 'http://localhost:8080/api/todos/';
 
 function App() {
-  const [todos, setTodos] = useState<TodoItemProps[]>([]);
-  const [fetchSuccess, setFetchSuccess] = useState(false);
+  const [todos, setTodos] = useState([]);
+  const [todosSuccess, setTodosSuccess] = useState(false);
   
-  const getTodosFromAPI = async () => {
+  const getTodos = async () => {
     try {
-      const response = await fetch(endpointGetTodos, {mode:'cors'});
-      const data = await response.json();
-      const initialData = localStorage.getItem('todos') || data;
-      setTodos(initialData);
-      setFetchSuccess(true);
-      console.log({ data });
+      // fetch todos if not exist in localStorage
+      // if localStorage has no todos
+      if(localStorage.getItem('todos') === null) {
+        // fetch todos
+        const response = await fetch(endpointGetTodos, {mode:'cors'});
+        const data = await response.json();
+        // setTodos
+        setTodos(data);
+        // add todos to localStorage
+        localStorage.setItem('todos', JSON.stringify(data));
+        setTodosSuccess(true);
+      } else {
+        setTodos(JSON.parse(localStorage.getItem('todos')!));
+        setTodosSuccess(true);
+      }
     }
     catch (error) {
       console.log(error);
@@ -60,9 +69,9 @@ function App() {
   };
 
   useEffect(() => {
-    getTodosFromAPI();
+    getTodos();
   }, []);
-  
+
   const addTodo = useCallback((description: string) => {
     const todo = {
       id: uuidv4(),
@@ -121,7 +130,7 @@ function App() {
       <Header>Todo List</Header>
       <AddInput onAdd={addTodo} />
       <TodoList>
-        {fetchSuccess && todos?.map((todo, idx) => (
+        {todosSuccess && todos?.map((todo, idx) => (
           <TodoItem
             {...todo}
             key={idx}
