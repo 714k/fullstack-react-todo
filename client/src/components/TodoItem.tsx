@@ -2,7 +2,7 @@ import React, { FC, useState } from "react";
 import styled from "@emotion/styled";
 import { TodoItemProps } from "../models/TodoItem";
 
-export const Wrapper = styled.label({
+export const Wrapper = styled.label<{checked: boolean}>(({ checked }) => ({
   display: "flex",
   alignItems: "center",
   // justifyContent: "space-between",
@@ -10,14 +10,15 @@ export const Wrapper = styled.label({
   borderRadius: 4,
   marginBottom: 8,
   padding: 16,
-  background: "white",
+  background: checked ? "#266f00" : "white",
   fontWeight: "400",
   fontSize: 14,
   cursor: "pointer",
-});
+}));
 
 const Label = styled.span<{ checked: boolean }>(({ checked }) => ({
   textDecoration: checked ? "line-through" : "none",
+  color: checked ? "white" : "grey",
   fontSize: 20,
   margin: 0,
   display: "flex",
@@ -26,7 +27,6 @@ const Label = styled.span<{ checked: boolean }>(({ checked }) => ({
   flexWrap: "nowrap",
   justifyContent: "flex-start",
   alignItems: "center",
-  color: "grey",
 }));
 
 const Checkbox = styled.input({
@@ -35,43 +35,61 @@ const Checkbox = styled.input({
   marginRight: 12,
 });
 
+const ButtonsWrapper = styled.span`
+  display: flex-inline;
+  margin-left: auto;
+`;
+
 const Button = styled.button`
    margin-left: auto;
    width: auto;
    margin-top: 0;
    margin-bottom: 0;
+   margin-right: 16px;
    height: 40px;
-   background-color: red;
+   background-color: grey;
    color: white;
+   border: none;
+   border-radius: 8px;
    &:hover {
-    background-color: black;
+    background-color: red;
    }
 `;
 
 export const TodoItem: FC<TodoItemProps> = ({
   id,
   description,
-  checked = false,
+  completed = false,
   onChange,
-  onClick,
+  onEditTodo,
+  onRemoveTodo,
 }) => {
-  const [showCloseButton, setShowCloseButton] = useState(false);
+  const [showButtons, setShowButtons] = useState(false);
 
   return (
     <Wrapper
-      onMouseOver={() => setShowCloseButton(true)}
-      onMouseOut={() => setShowCloseButton(false)}
+      checked={completed}
+      onMouseOver={() => {setShowButtons(true)}}
+      onMouseOut={() => setShowButtons(false)}
     >
       <Checkbox
         type="checkbox"
         id={id}
-        checked={checked}
+        checked={completed}
         onChange={(e) => onChange(e.target.checked, id)}
       />
-      <Label checked={checked}>{description}</Label>
-      {showCloseButton && (
+      <Label checked={completed}>{description}</Label>
+      {showButtons && (
+        <ButtonsWrapper>
         <Button 
-          onClick={(e) => onClick(e, id)}>Remove</Button>
+          onClick={(e) => onEditTodo(e, id)}>
+            Edit
+        </Button>
+        <Button 
+          onClick={(e) => onRemoveTodo(e, id)}>
+            Remove
+        </Button>
+        </ButtonsWrapper>
       )}
     </Wrapper>
   );

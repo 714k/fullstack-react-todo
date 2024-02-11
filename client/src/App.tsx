@@ -4,12 +4,13 @@ import styled from "@emotion/styled";
 import { 
   AddInput,
   Header,
+  SubTitle,
   TodoItem,
   TodoList
 } from "./components";
-import { getAllTodos, postTodo } from "./api/todos";
-import { error } from "console";
+import { deleteTodo, getAllTodos, postTodo } from "./api/todos";
 import { TodoItemProps } from "./models/TodoItem";
+import { updateAndSortTodos } from "./utils/todos";
 
 const Wrapper = styled.div({
   display: "flex",
@@ -21,6 +22,8 @@ const Wrapper = styled.div({
 function App() {
   const [todos, setTodos] = useState([]);
   const [todosSuccess, setTodosSuccess] = useState(false);
+  const [errorGetTodos, setErrorGetTodos] = useState(false);
+  const [deleteTodoMessage, setDeleteTodoMessage] = useState('');
   
   useEffect(() => {
     getTodos();
@@ -46,6 +49,7 @@ function App() {
       }
     }
     catch (error) {
+      setErrorGetTodos(true),
       console.log(error);
     }
   }
@@ -78,58 +82,74 @@ function App() {
     }
   };
 
-  const handleChange = useCallback((checked: boolean, id: string) => {
-    // handle the check/uncheck logic
-    let sortedTodos = [];
-    const updatedTodos = todos.map(todo => {
-      if(todo.id === id){
-        return {
-          ...todo,
-          completed: checked,
-         } 
-      }
-      return todo;
-    });
-    const remainingTodos = updatedTodos
-      .filter(item => item.id !== id);
-    const checkedTodo = updatedTodos
-      .filter(todo => todo.id === id);
-    const [currentTodo] = checkedTodo;
-    if(currentTodo.checked === true) {
-      sortedTodos = [...remainingTodos, ...checkedTodo];
-    } else {
-      sortedTodos = [...checkedTodo, ...remainingTodos];
-    }
+  const handleChange = useCallback((completed: boolean, id: string) => {
+    const sortedTodos = updateAndSortTodos(todos, id, completed);
 
     setTodos(sortedTodos);
     window.localStorage.setItem('todos', JSON.stringify(sortedTodos));
   }, [todos]);
 
-  const handleClick = useCallback((event: MouseEvent, id: string) => {
+  // TODO - Add logic to edit todo
+  const handleEditTodo = (event, id) => {
+    console.log(event);
+  };
+
+  // TODO - Add logic to remove todo
+  const handleRemoveTodo = useCallback((event: MouseEvent, id: string) => {
     event.preventDefault();
-    const remainingTodos = todos.filter(todo => todo.id !== id);
-    setTodos(remainingTodos);
-    window.localStorage.setItem('todos', JSON.stringify(remainingTodos));
+
+    removeTodo(id);
+    
   }, [todos]);
 
-  // If api respond success on update or add todos
-  // should update the database
-  // and after should persist on local storage
+  const removeTodo = async(id: string) => {
+    const remainingTodos = todos.filter(todo => todo.id !== id);
+    const currentTodo = todos.filter(todo => todo.id === id)[0];
+    try {
+      const response = await deleteTodo(currentTodo);
+      const data = response?.data;
+      console.log(data);
+      setDeleteTodoMessage(data.message);
+      alert(deleteTodoMessage || data.message);
+      // setTodos
+      setTodos(remainingTodos);
+      window.localStorage.setItem('todos', JSON.stringify(remainingTodos));
+  
+      setTodosSuccess(true);
+    } catch (error) {
+      console.error(error);
+    }
+  }
 
+  // DONE - If api respond success on update or add todos
+  // DONE - should update the database
+  // DONE - and after should persist on local storage
 
-  // If API respond with error status
-  // frontend update must be reverted
-
+  // TODO - If API respond with error status frontend update must be reverted
+  const noTodos = todos?.length === 0 || todos === undefined;
+  // TODO - Fix Error getting todos
+  const errorGettingTodos = errorGetTodos && noTodos;
+  // const showDeleteTodoMessage = () => {
+  //   if (deleteTodoMessage?.length > 0) {
+  //     alert(deleteTodoMessage);      
+  //   } else {
+  //     return null;
+  //   }
+  // };
   return (
     <Wrapper>
       <Header>Todo List</Header>
       <AddInput onAdd={addTodo} />
+      {/* {deleteTodoMessage?.length > 0 && showDeleteTodoMessage()} */}
+      {errorGettingTodos && <SubTitle>Sorry we have an error fetching Todos</SubTitle>}
+      {noTodos && <SubTitle>You dont have todos to show</SubTitle>}
       <TodoList>
         {todosSuccess && todos?.map((todo, idx) => (
           <TodoItem
             {...todo}
             key={idx}
-            onClick={handleClick}
+            onEditTodo={handleEditTodo}
+            onRemoveTodo={handleRemoveTodo}
             onChange={handleChange} />
         ))}
       </TodoList>
