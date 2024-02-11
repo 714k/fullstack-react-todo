@@ -87,9 +87,21 @@ function App() {
     localStorage.setItem('todos', JSON.stringify(sortedTodos));
   }, [todos]);
 
-  // TODO - Add logic to edit todo
+  // TODO - Set an index to left the todo in the same position
+  // TODO - Replace span for text input to allo edit Todo 
   const handleEditTodo = (event, id) => {
-    console.log(event);
+    const updatedTodos = todos.map(todo => {
+      if(todo.id === id) {
+        todo = {
+          ...todo,
+          description: 'Add the new description here at text field'
+        }
+      }
+
+      return todo;
+    });
+    setTodos(updatedTodos);
+    localStorage.setItem('todos', JSON.stringify(updatedTodos));
   };
 
   const handleRemoveTodo = useCallback((event: MouseEvent, id: string) => {
