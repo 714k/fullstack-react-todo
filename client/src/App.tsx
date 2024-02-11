@@ -22,8 +22,6 @@ const Wrapper = styled.div({
 function App() {
   const [todos, setTodos] = useState([]);
   const [todosSuccess, setTodosSuccess] = useState(false);
-  const [errorGetTodos, setErrorGetTodos] = useState(false);
-  const [deleteTodoMessage, setDeleteTodoMessage] = useState('');
   
   useEffect(() => {
     getTodos();
@@ -40,7 +38,7 @@ function App() {
         // setTodos
         setTodos(data);
         // add todos to localStorage
-        localStorage.setItem('todos', JSON.stringify(data));
+        data.length && localStorage.setItem('todos', JSON.stringify(data));
         setTodosSuccess(true);
       } else {
         // Set todos from local Storage
@@ -49,7 +47,7 @@ function App() {
       }
     }
     catch (error) {
-      setErrorGetTodos(true),
+      setTodosSuccess(false);
       console.log(error);
     }
   }
@@ -86,7 +84,7 @@ function App() {
     const sortedTodos = updateAndSortTodos(todos, id, completed);
 
     setTodos(sortedTodos);
-    window.localStorage.setItem('todos', JSON.stringify(sortedTodos));
+    localStorage.setItem('todos', JSON.stringify(sortedTodos));
   }, [todos]);
 
   // TODO - Add logic to edit todo
@@ -94,14 +92,12 @@ function App() {
     console.log(event);
   };
 
-  // TODO - Add logic to remove todo
   const handleRemoveTodo = useCallback((event: MouseEvent, id: string) => {
     event.preventDefault();
-
     removeTodo(id);
-    
   }, [todos]);
 
+  // TODO - Show notification of removed todo
   const removeTodo = async(id: string) => {
     const remainingTodos = todos.filter(todo => todo.id !== id);
     const currentTodo = todos.filter(todo => todo.id === id)[0];
@@ -109,11 +105,10 @@ function App() {
       const response = await deleteTodo(currentTodo);
       const data = response?.data;
       console.log(data);
-      setDeleteTodoMessage(data.message);
-      alert(deleteTodoMessage || data.message);
+      alert(data.message);
       // setTodos
       setTodos(remainingTodos);
-      window.localStorage.setItem('todos', JSON.stringify(remainingTodos));
+      localStorage.setItem('todos', JSON.stringify(remainingTodos));
   
       setTodosSuccess(true);
     } catch (error) {
@@ -121,28 +116,15 @@ function App() {
     }
   }
 
-  // DONE - If api respond success on update or add todos
-  // DONE - should update the database
-  // DONE - and after should persist on local storage
-
   // TODO - If API respond with error status frontend update must be reverted
-  const noTodos = todos?.length === 0 || todos === undefined;
-  // TODO - Fix Error getting todos
-  const errorGettingTodos = errorGetTodos && noTodos;
-  // const showDeleteTodoMessage = () => {
-  //   if (deleteTodoMessage?.length > 0) {
-  //     alert(deleteTodoMessage);      
-  //   } else {
-  //     return null;
-  //   }
-  // };
+  
   return (
     <Wrapper>
       <Header>Todo List</Header>
       <AddInput onAdd={addTodo} />
       {/* {deleteTodoMessage?.length > 0 && showDeleteTodoMessage()} */}
-      {errorGettingTodos && <SubTitle>Sorry we have an error fetching Todos</SubTitle>}
-      {noTodos && <SubTitle>You dont have todos to show</SubTitle>}
+      {!todosSuccess && <SubTitle>Sorry we have an error fetching Todos</SubTitle>}
+      {/* {noTodos && <SubTitle>You dont have todos to show</SubTitle>} */}
       <TodoList>
         {todosSuccess && todos?.map((todo, idx) => (
           <TodoItem
