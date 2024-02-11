@@ -6,7 +6,7 @@ router.get('/', async (req, res) => {
   await db.todos.findAll()
     .then(data => {
       res.set('Access-Control-Allow-Origin', '*');
-      res.send(data);
+      res.status(200).send(data);
     })
     .catch(error => {
       res.status(500).send({
@@ -36,15 +36,14 @@ router.post('/', async (req, res) => {
 });
 
 router.delete('/:id', async (req, res) => {
-  console.log('hi delete');
-
   const { id } = req.params;
     await db.todos.destroy({
       where: { id: id }
     })
     .then(data => {
+      // TODO - send message with name of the Todo
       if(data == 1) {
-        console.log({data})
+        console.log('data 1')
         res.status(200).send({
           message: `The Todo with id ${id} was deleted succesfuly` 
         });

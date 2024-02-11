@@ -1,7 +1,8 @@
 export interface TodoItemProps {
   id: string;
   description: string;
-  checked?: boolean;
+  completed?: boolean;
   onChange?: (checked: boolean, id: string) => void;
-  onClick?: (event: MouseEvent, id: string) => void;
+  onEditTodo?: (event: MouseEvent, id: string) => void;
+  onRemoveTodo?: (event: MouseEvent, id: string) => void;
 }
